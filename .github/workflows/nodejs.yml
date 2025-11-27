@@ -1,0 +1,14 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+name: CI (disabled)
+
+# Test/CI workflow disabled because the project no longer contains automated tests.

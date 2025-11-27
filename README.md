@@ -109,10 +109,10 @@ git push
 ```
 
 Next recommended steps
-- Add request validation, tests, and a Postman collection (or `examples/` folder with sample requests). I can add those for you.
+- Add request validation and a Postman collection (or expand the `examples/` folder with sample requests). I can add those for you.
 
 Contact / notes
-- If you want, I can also create a small integration test suite and a Dockerfile, or push this repository to a GitHub repo if you provide the remote URL (I won't push without your consent).
+-- If you want, I can also create a Dockerfile or push this repository to a GitHub repo if you provide the remote URL (I won't push without your consent).
 
 Architecture (high level)
 
