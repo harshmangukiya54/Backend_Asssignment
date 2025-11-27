@@ -1,149 +1,223 @@
-# Organization Management Service (Node.js)
+Organization Management Service (Node.js)
 
-This is a simple Organization Management backend implemented with Node.js, Express and MongoDB. It implements the following endpoints:
+A multi-tenant backend service built with Node.js, Express, and MongoDB for managing organizations and admin authentication.
+
+🚀 Overview
+
+This backend implements a multi-tenant architecture, where each organization gets its own dedicated MongoDB collection named:
+
+org_<organization_name>
 
 
-# Organization Management Service (Node.js)
+A Master Database stores:
 
-This repository contains a small backend service to create and manage organizations in a multi-tenant style.
+Organization metadata
 
-Core features
-- Master DB storing `organizations` and `admins` collections
-- Per-organization dynamic collections named `org_<organization_name>`
-- Admin user creation with bcrypt-hashed passwords
-- JWT-based admin authentication (token contains admin_id and org_id)
+Admin users
 
-Quick start
+Collection references
 
+Includes:
+
+Create Organization
+
+Get Organization
+
+Update Organization (rename + data migration)
+
+Delete Organization
+
+Admin Login (JWT)
+
+Password hashing (bcrypt)
+
+📁 Project Structure
+.
+├── controllers/
+│   └── orgController.js
+├── services/
+│   └── orgService.js
+├── routes/
+│   └── orgRoutes.js
+├── middleware/
+├── examples/
+├── auth.js
+├── db.js
+├── app.js
+├── server.js
+├── package.json
+├── Dockerfile
+└── README.md
+
+✔ Clean, modular, class-based design
+
+Controllers handle request/response
+
+Services contain business logic
+
+db.js manages Master DB + dynamic collection creation
+
+auth.js handles JWT + bcrypt
+
+⚙️ Tech Stack
+
+Node.js
+
+Express.js
+
+MongoDB (Native driver)
+
+bcrypt (Password hashing)
+
+jsonwebtoken (JWT)
+
+dotenv
+
+▶️ How to Run the Application
 1. Install dependencies
-
-```powershell
 npm install
-```
 
-2. (Optional) create a `.env` file in the project root and set the following values:
-
-```
+2. Create a .env file
 MONGO_URI=mongodb://localhost:27017
 MASTER_DB=master_db
 JWT_SECRET=your_strong_secret_here
 PORT=8000
-```
 
 3. Start the server
-
-```powershell
 npm run dev
-```
 
-Health check
+4. Test the API
 
-GET http://localhost:8000/
+Open in browser or Postman:
 
-Sample API usage (PowerShell / curl)
+👉 http://localhost:8000
 
-- Create organization
+🧪 API Endpoints
+1️⃣ Create Organization
 
-```powershell
-curl -Method POST http://localhost:8000/org/create -ContentType 'application/json' -Body '{"organization_name":"acme","email":"admin@acme.com","password":"secret123"}'
-```
+POST /org/create
+Creates:
 
-- Admin login
+Organization metadata
 
-```powershell
-curl -Method POST http://localhost:8000/admin/login -ContentType 'application/json' -Body '{"email":"admin@acme.com","password":"secret123"}'
-```
+Admin user (bcrypt password)
 
-- Delete organization (requires Authorization header with Bearer token returned from login)
+Dynamic collection org_<name>
 
-```powershell
-curl -Method DELETE http://localhost:8000/org/delete -ContentType 'application/json' -Headers @{ Authorization = 'Bearer <TOKEN>' } -Body '{"organization_name":"acme"}'
-```
+2️⃣ Get Organization
 
-Files of interest
-- `app.js` — application bootstrap and route mounting
-- `routes/orgRoutes.js` — route definitions
-- `controllers/orgController.js` — controller implementations for org operations
-- `db.js` — MongoDB connection and dynamic collection helpers
-- `auth.js` — bcrypt and JWT helpers
+GET /org/get
+Fetches org metadata from Master DB.
 
-Assignment checklist (mapping to repo)
+3️⃣ Update Organization (Rename)
 
-- Create Organization (POST /org/create) — implemented in `controllers/orgController.js` (createOrg). ✅
-- Get Organization (GET /org/get) — implemented in `controllers/orgController.js` (getOrg). ✅
-- Update Organization (PUT /org/update) — implemented in `controllers/orgController.js` (updateOrg). ✅
-- Delete Organization (DELETE /org/delete) — implemented and protected by JWT middleware in `routes/orgRoutes.js` and `auth.js`. ✅
-- Admin Login (POST /admin/login) — implemented in `controllers/orgController.js` (adminLogin) and `auth.js` for token creation. ✅
-- Master DB & dynamic collections — `db.js` handles creation, copy and drop of per-org collections. ✅
-- JWT auth and bcrypt password hashing — `auth.js`. ✅
+PUT /org/update
+Performs:
 
-Design notes
-- Approach: single master DB containing metadata collections (`organizations`, `admins`) and dynamic per-org collections. This keeps metadata centralized and tenant data separated at collection level.
-- Trade-offs: collection-per-tenant is easy to implement but can be harder to scale to a very large number of tenants; alternatives include tenant_id in shared collections or a database-per-tenant approach.
+Rename validation
 
-Security & production notes
-- Set a strong `JWT_SECRET` in environment variables or a secrets manager — do not commit secrets.
-- Add input validation (express-validator / Joi), rate limiting, CORS settings, and logging for production.
-- Use TLS/HTTPS and place the service behind a reverse proxy.
+Creates new dynamic collection
 
-How to push to GitHub (example)
+Copies old data → new collection
 
-1. Create a new empty repository on GitHub (e.g., `yourusername/NodeCRUD`).
-2. In the project folder, if not already a git repo, run:
+Drops previous collection
 
-```powershell
-git init
-git add -A
-git commit -m "feat: initial organization management service"
-git branch -M main
-git remote add origin https://github.com/<yourusername>/NodeCRUD.git
-git push -u origin main
-```
+4️⃣ Delete Organization
 
-If your repo is already initialized locally and has a remote, simply run:
+DELETE /org/delete
+Requires JWT token.
+Deletes:
 
-```powershell
-git add -A
-git commit -m "chore: update README and add .gitignore"
-git push
-```
+Org metadata
 
-Next recommended steps
-- Add request validation and a Postman collection (or expand the `examples/` folder with sample requests). I can add those for you.
+Admin(s)
 
-Contact / notes
--- If you want, I can also create a Dockerfile or push this repository to a GitHub repo if you provide the remote URL (I won't push without your consent).
+Dynamic collection
 
-Architecture (high level)
+5️⃣ Admin Login
 
-ASCII diagram:
+POST /admin/login
+Returns JWT token with:
 
-```
-+-----------------------------+
-|        Client / UI         |
-+-----------------------------+
-			 |
-			 v
-+-----------------------------+
-|     Express (app.js)       |
-|  routes/orgRoutes.js       |
-+-----------------------------+
-			 |
-			 v
-+-----------------------------+
-|   Controllers (orgController)  |
-+-----------------------------+
-			 |
-			 v
-+-----------------------------+
-|   Services (services/orgService.js)  |
-+-----------------------------+
-			 |
-			 v
-+-----------------------------+
-|   Data layer (db.js - MongoDB) |
-+-----------------------------+
-```
+admin_id
 
-Design note: controllers are thin and delegate business logic to a class-based service (`OrgService`) which centralizes tenant lifecycle operations, making the code modular and easier to test.
+org_id
 
+🧩 High-Level Architecture Diagram (Mermaid)
+flowchart TD
+
+A[Client] --> B[Express Server (app.js)]
+B --> C[Routes (orgRoutes.js)]
+C --> D[Controllers (orgController.js)]
+D --> E[OrgService Class (services/orgService.js)]
+E --> F[Master Database (organizations, admins)]
+E --> G[Dynamic Collections - org_<name>]
+
+B --> H[JWT Middleware (auth.js)]
+H --> C
+
+🏗 Design Choices
+1. Multi-Tenant via Dynamic Collections
+
+Each organization lives in its own collection:
+
+org_acme
+org_google
+org_tesla
+
+
+✔ Clear data isolation
+✔ No mixing tenant data
+✔ Easy scaling
+
+2. Service-Layer Architecture
+
+Your service (OrgService) handles:
+
+Creating orgs
+
+Dynamic collection creation
+
+Cloning/migrating collections
+
+Deleting org data
+
+This keeps controllers thin and clean.
+
+3. MongoDB (Native Driver)
+
+Chosen because:
+
+Flexible schema
+
+Easy programmatic collection creation
+
+Ideal for document-based tenants
+
+4. JWT Authentication
+
+Stores:
+
+admin_id
+
+org_id
+
+Stateless and easy to validate per request.
+
+⚖️ Trade-Offs
+Design	Pros	Cons
+Collection-per-tenant	Strong isolation	Too many collections for thousands of orgs
+Native Mongo driver	Full control	More code than ODMs like Mongoose
+JWT	Stateless, fast	Hard to revoke tokens
+Node.js	Lightweight	Single-threaded unless clustered
+🔐 Security Notes (Important for Reviewers)
+
+All passwords hashed using bcrypt
+
+JWT_SECRET must be strong
+
+No credentials stored in plain text
+
+Could add validation (Joi / Zod) for production
+
+Recommended rate limiting & HTTPS
