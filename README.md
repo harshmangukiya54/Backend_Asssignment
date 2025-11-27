@@ -1,23 +1,25 @@
-Organization Management Service (Node.js)
+🚀 Organization Management Service (Node.js)
 
 A multi-tenant backend service built with Node.js, Express, and MongoDB for managing organizations and admin authentication.
 
-🚀 Overview
+📊 Architecture Diagram
 
-This backend implements a multi-tenant architecture, where each organization gets its own dedicated MongoDB collection named:
+📌 Overview
+
+This backend implements a multi-tenant architecture, where each organization receives its own dedicated MongoDB collection:
 
 org_<organization_name>
 
 
-A Master Database stores:
+A central Master Database stores:
 
 Organization metadata
 
-Admin users
+Admin user credentials (hashed)
 
 Collection references
 
-Includes:
+✔ Features Implemented
 
 Create Organization
 
@@ -29,7 +31,9 @@ Delete Organization
 
 Admin Login (JWT)
 
-Password hashing (bcrypt)
+Password Hashing (bcrypt)
+
+Dynamic per-tenant MongoDB collections
 
 📁 Project Structure
 .
@@ -49,29 +53,27 @@ Password hashing (bcrypt)
 ├── Dockerfile
 └── README.md
 
-✔ Clean, modular, class-based design
+✔ Modular, Class-Based Architecture
 
-Controllers handle request/response
+Controllers → Handle request/response
 
-Services contain business logic
+Service Layer (OrgService) → All business logic
 
-db.js manages Master DB + dynamic collection creation
+db.js → Master DB + dynamic collection creation/migration
 
-auth.js handles JWT + bcrypt
+auth.js → JWT generation + bcrypt hashing
 
 ⚙️ Tech Stack
 
-Node.js
-
-Express.js
+Node.js + Express
 
 MongoDB (Native driver)
 
-bcrypt (Password hashing)
+bcrypt (secure password hashing)
 
-jsonwebtoken (JWT)
+jsonwebtoken (JWT authentication)
 
-dotenv
+dotenv for environment variables
 
 ▶️ How to Run the Application
 1. Install dependencies
@@ -88,7 +90,7 @@ npm run dev
 
 4. Test the API
 
-Open in browser or Postman:
+Open in browser/Postman:
 
 👉 http://localhost:8000
 
@@ -96,128 +98,135 @@ Open in browser or Postman:
 1️⃣ Create Organization
 
 POST /org/create
+
 Creates:
 
 Organization metadata
 
-Admin user (bcrypt password)
+Admin user
 
 Dynamic collection org_<name>
 
 2️⃣ Get Organization
 
 GET /org/get
-Fetches org metadata from Master DB.
 
-3️⃣ Update Organization (Rename)
+Fetch organization metadata from Master DB.
+
+3️⃣ Update Organization (Rename Tenant)
 
 PUT /org/update
+
 Performs:
 
-Rename validation
+Validate new name
 
-Creates new dynamic collection
+Create new dynamic collection
 
-Copies old data → new collection
+Migrate old data → new collection
 
-Drops previous collection
+Delete previous collection
 
 4️⃣ Delete Organization
 
 DELETE /org/delete
+
 Requires JWT token.
+
 Deletes:
 
-Org metadata
+Organization metadata
 
-Admin(s)
+Associated admin
 
-Dynamic collection
+Dynamic tenant collection
 
 5️⃣ Admin Login
 
 POST /admin/login
-Returns JWT token with:
+
+Returns:
 
 admin_id
 
 org_id
 
-🧩 High-Level Architecture Diagram (Mermaid)
-flowchart TD
+JWT token
 
-A[Client] --> B[Express Server (app.js)]
-B --> C[Routes (orgRoutes.js)]
-C --> D[Controllers (orgController.js)]
-D --> E[OrgService Class (services/orgService.js)]
-E --> F[Master Database (organizations, admins)]
-E --> G[Dynamic Collections - org_<name>]
+🧩 High-Level Architecture (Explanation)
 
-B --> H[JWT Middleware (auth.js)]
-H --> C
+Client → Express → Routes → Controller → Service → MongoDB
+
+All org operations flow through the service layer
+
+Master DB stores metadata
+
+Dynamic collections store organization-specific data
+
+JWT middleware validates admin on protected routes
 
 🏗 Design Choices
 1. Multi-Tenant via Dynamic Collections
 
-Each organization lives in its own collection:
+Each tenant gets an isolated Mongo collection:
 
 org_acme
 org_google
 org_tesla
 
 
-✔ Clear data isolation
-✔ No mixing tenant data
-✔ Easy scaling
+✔ Strong isolation
+✔ Simple to query
+✔ Easy scaling horizontally
 
-2. Service-Layer Architecture
+2. Service Layer Architecture
 
-Your service (OrgService) handles:
+Your OrgService handles:
 
-Creating orgs
+Organization lifecycle
 
 Dynamic collection creation
 
-Cloning/migrating collections
+Copying/migrating collections
 
-Deleting org data
+Deletion & cleanup
 
-This keeps controllers thin and clean.
+Controllers stay thin and clean.
 
-3. MongoDB (Native Driver)
+3. Native MongoDB Driver
 
-Chosen because:
+Chosen for:
 
-Flexible schema
+Full low-level control
 
-Easy programmatic collection creation
+Easy dynamic collection creation
 
-Ideal for document-based tenants
+Fast performance
 
 4. JWT Authentication
 
-Stores:
+JWT contains:
 
 admin_id
 
 org_id
 
-Stateless and easy to validate per request.
+Stateless and scalable.
 
 ⚖️ Trade-Offs
 Design	Pros	Cons
-Collection-per-tenant	Strong isolation	Too many collections for thousands of orgs
-Native Mongo driver	Full control	More code than ODMs like Mongoose
+Collection-per-tenant	Great isolation	Too many collections for huge number of orgs
+Native driver	Full control	More boilerplate than Mongoose
 JWT	Stateless, fast	Hard to revoke tokens
-Node.js	Lightweight	Single-threaded unless clustered
-🔐 Security Notes (Important for Reviewers)
+Node.js	Lightweight, simple	Single-threaded
+🔐 Security Notes
 
 All passwords hashed using bcrypt
 
-JWT_SECRET must be strong
+JWT secret must be strong
 
-No credentials stored in plain text
+No plain-text credentials
 
-Could add validation (Joi / Zod) for production
+Add input validation (Joi/Zod) for production
 
-Recommended rate limiting & HTTPS
+Consider rate limiting and HTTPS in deployment
