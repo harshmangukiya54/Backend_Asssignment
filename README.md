@@ -1,8 +1,11 @@
+
+
 🚀 Organization Management Service (Node.js)
 
 A multi-tenant backend service built with Node.js, Express, and MongoDB for managing organizations and admin authentication.
 
-📊 Architecture Diagram
+## 📊 Architecture Diagram
+![Architecture Diagram](architecture.png)
 
 📌 Overview
 
