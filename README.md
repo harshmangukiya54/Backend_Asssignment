@@ -113,3 +113,37 @@ Next recommended steps
 
 Contact / notes
 - If you want, I can also create a small integration test suite and a Dockerfile, or push this repository to a GitHub repo if you provide the remote URL (I won't push without your consent).
+
+Architecture (high level)
+
+ASCII diagram:
+
+```
++-----------------------------+
+|        Client / UI         |
++-----------------------------+
+			 |
+			 v
++-----------------------------+
+|     Express (app.js)       |
+|  routes/orgRoutes.js       |
++-----------------------------+
+			 |
+			 v
++-----------------------------+
+|   Controllers (orgController)  |
++-----------------------------+
+			 |
+			 v
++-----------------------------+
+|   Services (services/orgService.js)  |
++-----------------------------+
+			 |
+			 v
++-----------------------------+
+|   Data layer (db.js - MongoDB) |
++-----------------------------+
+```
+
+Design note: controllers are thin and delegate business logic to a class-based service (`OrgService`) which centralizes tenant lifecycle operations, making the code modular and easier to test.
+
